@@ -11,13 +11,26 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class LonelyTwitterActivity extends Activity {
+import ca.ualberta.cs.lonelytwit.ImportantLonelyTweet;
+import ca.ualberta.cs.lonelytwit.LonelyTweet;
+import ca.ualberta.cs.lonelytwit.NormalLonelyTweet;
 
+public class LonelyTwitterActivity extends Activity {
+	//Fix: narrowed down access from "public" to "private", only increase access as needed,
+	//		most variables are only used by the class itself
 	private EditText bodyText;
 	private ListView oldTweetsList;
 
-	private List<NormalLonelyTweet> tweets;
-	private ArrayAdapter<NormalLonelyTweet> adapter;
+	public List<LonelyTweet> getTweets() {
+		return tweets;
+	}
+
+	public void setTweets(List<LonelyTweet> tweets) {
+		this.tweets = tweets;
+	}
+
+	private List<LonelyTweet> tweets;
+	private ArrayAdapter<LonelyTweet> adapter;
 	private TweetsFileManager tweetsProvider;
 
 	@Override
@@ -35,7 +48,7 @@ public class LonelyTwitterActivity extends Activity {
 
 		tweetsProvider = new TweetsFileManager(this);
 		tweets = tweetsProvider.loadTweets();
-		adapter = new ArrayAdapter<NormalLonelyTweet>(this, R.layout.list_item,
+		adapter = new ArrayAdapter<LonelyTweet>(this, R.layout.list_item,
 				tweets);
 		oldTweetsList.setAdapter(adapter);
 	}
@@ -43,9 +56,11 @@ public class LonelyTwitterActivity extends Activity {
 	public void save(View v) {
 		String text = bodyText.getText().toString();
 
-		NormalLonelyTweet tweet;
+		LonelyTweet tweet;
 
-		tweet = new NormalLonelyTweet(text, new Date());
+		//tweet = new NormalLonelyTweet(text, new Date());
+		tweet = getNormalOrImportantLonelyTweet(text);
+
 
 		//TODO: use different sub-classes (Normal or Important) based on usage of "*" in the text.
 		
@@ -58,6 +73,16 @@ public class LonelyTwitterActivity extends Activity {
 		} else {
 			Toast.makeText(this, "Invalid tweet", Toast.LENGTH_SHORT).show();
 		}
+	}
+
+	private LonelyTweet getNormalOrImportantLonelyTweet(String text) {
+		LonelyTweet tweet;
+		if(text.contains("*")){
+			tweet = new ImportantLonelyTweet(text,new Date());
+		} else {
+			tweet = new NormalLonelyTweet(text,new Date());
+		}
+		return tweet;
 	}
 
 	public void clear(View v) {
